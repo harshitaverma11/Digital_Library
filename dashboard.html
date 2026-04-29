@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 Dashboard — Digital Library</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="logo">📚 <span>Library</span></div>
+
+  <div class="header-actions">
+    <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+    <a href="index.html" class="hbtn hbtn-ghost">📚 Browse Books</a>
+    <button class="hbtn hbtn-fill" style="pointer-events:none">📊 Dashboard</button>
+    <button class="icon-btn" id="darkBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+  </div>
+</header>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">My Library</div>
+      <button class="cat-btn active" id="nav-all" onclick="showSection('all',this)">
+        <span>📚</span> All Issued
+      </button>
+      <button class="cat-btn" id="nav-reading" onclick="showSection('reading',this)">
+        <span>📖</span> Currently Reading
+      </button>
+      <button class="cat-btn" id="nav-completed" onclick="showSection('completed',this)">
+        <span>✅</span> Completed
+      </button>
+      <button class="cat-btn" id="nav-favorites" onclick="showSection('favorites',this)">
+        <span>❤️</span> Wishlist / Favorites
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Activity</div>
+      <button class="cat-btn" id="nav-activity" onclick="showSection('activity',this)">
+        <span>🕑</span> Recent Activity
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Quick Links</div>
+      <a href="index.html" class="cat-btn" style="display:flex;gap:8px"><span>🔍</span>Browse Books</a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- ── STAT CARDS (always visible) ── -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card active" id="sc-all" onclick="showSection('all', document.getElementById('nav-all'))">
+        <div class="stat-icon-wrap">📚</div>
+        <div class="stat-num" id="sc-all-num">0</div>
+        <div class="stat-label">Books Issued</div>
+      </div>
+      <div class="stat-card" id="sc-reading" onclick="showSection('reading', document.getElementById('nav-reading'))">
+        <div class="stat-icon-wrap">📖</div>
+        <div class="stat-num" id="sc-reading-num">0</div>
+        <div class="stat-label">Currently Reading</div>
+      </div>
+      <div class="stat-card" id="sc-completed" onclick="showSection('completed', document.getElementById('nav-completed'))">
+        <div class="stat-icon-wrap">✅</div>
+        <div class="stat-num" id="sc-completed-num">0</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-card" id="sc-favorites" onclick="showSection('favorites', document.getElementById('nav-favorites'))">
+        <div class="stat-icon-wrap">❤️</div>
+        <div class="stat-num" id="sc-favorites-num">0</div>
+        <div class="stat-label">Wishlist</div>
+      </div>
+    </div>
+
+    <!-- ── GOAL & STREAK (always visible) ── -->
+    <div class="goals-row">
+      <div class="goal-card">
+        <div class="goal-card-title">🎯 Reading Goal</div>
+        <div class="goal-bar-wrap">
+          <div class="goal-bar-fill" id="goalFill" style="width:0%"></div>
+        </div>
+        <div class="goal-text">
+          <span id="currentRead">0</span> / <span id="goalTarget">12</span> books this year
+        </div>
+        <button class="goal-edit-btn" onclick="openGoalModal()">✏️ Edit Goal</button>
+      </div>
+      <div class="streak-card">
+        <div class="streak-card-title">🔥 Reading Streak</div>
+        <div class="streak-num" id="streakNum">0</div>
+        <div class="streak-sub">days active</div>
+      </div>
+    </div>
+
+    <!-- ── SECTION: ALL ISSUED ── -->
+    <div class="dash-section" id="sec-all">
+      <div class="section-header">
+        <h2>📚 All Issued Books</h2>
+      </div>
+      <div class="tab-controls">
+        <div class="tab-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="tab-search" type="text" placeholder="Search issued books…" oninput="filterSection('all',this.value)">
+        </div>
+        <select class="filter-select" style="width:auto;margin:0" onchange="sortSection('all',this.value)">
+          <option value="title">Sort by Title</option>
+          <option value="author">Sort by Author</option>
+          <option value="category">Sort by Category</option>
+        </select>
+      </div>
+      <div class="book-grid" id="container-all"></div>
+    </div>
+
+    <!-- ── SECTION: READING ── -->
+    <div class="dash-section" id="sec-reading" style="display:none">
+      <div class="section-header">
+        <h2>📖 Currently Reading</h2>
+      </div>
+      <div class="tab-controls">
+        <div class="tab-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="tab-search" type="text" placeholder="Search…" oninput="filterSection('reading',this.value)">
+        </div>
+      </div>
+      <div class="book-grid" id="container-reading"></div>
+    </div>
+
+    <!-- ── SECTION: COMPLETED ── -->
+    <div class="dash-section" id="sec-completed" style="display:none">
+      <div class="section-header">
+        <h2>✅ Completed Books</h2>
+      </div>
+      <div class="tab-controls">
+        <div class="tab-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="tab-search" type="text" placeholder="Search…" oninput="filterSection('completed',this.value)">
+        </div>
+      </div>
+      <div class="book-grid" id="container-completed"></div>
+    </div>
+
+    <!-- ── SECTION: FAVORITES ── -->
+    <div class="dash-section" id="sec-favorites" style="display:none">
+      <div class="section-header">
+        <h2>❤️ Wishlist / Favorites</h2>
+      </div>
+      <div class="book-grid" id="container-favorites"></div>
+    </div>
+
+    <!-- ── SECTION: ACTIVITY ── -->
+    <div class="dash-section" id="sec-activity" style="display:none">
+      <div class="section-header">
+        <h2>🕑 Recent Activity</h2>
+      </div>
+      <div class="activity-list" id="activityList"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Book modal -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitleBar">Book Details</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Reading Goal Modal -->
+<div class="modal-overlay" id="goalModal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-header">
+      <span class="modal-title">🎯 Set Reading Goal</span>
+      <button class="modal-close" onclick="closeGoalModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="goal-form">
+        <label for="goalInput">Books to read this year:</label>
+        <input type="number" id="goalInput" min="1" max="365" value="12">
+        <button class="modal-btn-primary" style="padding:11px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:all 0.2s" onclick="saveGoal()">Save Goal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="library.js"></script>
+<script>
+// ── CALLED BY library.js AFTER ANY ACTION ──────────────────
+function afterAction() {
+  updateStats();
+  updateGoal();
+  reloadCurrentSection();
+}
+
+// ── SECTION NAVIGATION ────────────────────────────────────
+const SECTIONS = ['all','reading','completed','favorites','activity'];
+let currentSection = 'all';
+
+function showSection(name, navBtn) {
+  currentSection = name;
+
+  // highlight stat card
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  const sc = document.getElementById('sc-' + name);
+  if (sc) sc.classList.add('active');
+
+  // highlight nav btn
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  if (navBtn) navBtn.classList.add('active');
+
+  // show/hide sections
+  SECTIONS.forEach(s => {
+    const el = document.getElementById('sec-' + s);
+    if (el) el.style.display = s === name ? 'block' : 'none';
+  });
+
+  loadSection(name);
+}
+
+function reloadCurrentSection() { loadSection(currentSection); }
+
+function loadSection(name) {
+  switch(name) {
+    case 'all':       loadIssued();     break;
+    case 'reading':   loadReading();    break;
+    case 'completed': loadCompleted();  break;
+    case 'favorites': loadFavorites();  break;
+    case 'activity':  loadActivity();   break;
+  }
+}
+
+// ── SECTION LOADERS ───────────────────────────────────────
+function loadIssued() {
+  const issued = getIssued();
+  const books  = BOOKS.filter(b => issued.includes(b.id));
+  renderDashGrid('container-all', books, 'issued');
+}
+
+function loadReading() {
+  const reading = getReading();
+  const books   = BOOKS.filter(b => reading.includes(b.id));
+  renderDashGrid('container-reading', books, 'reading', true);
+}
+
+function loadCompleted() {
+  const completed = getCompleted();
+  const books     = BOOKS.filter(b => completed.includes(b.id));
+  renderDashGrid('container-completed', books, 'completed');
+}
+
+function loadFavorites() {
+  const favs  = getFavorites();
+  const books = BOOKS.filter(b => favs.includes(b.id));
+  renderDashGrid('container-favorites', books, 'favorites');
+}
+
+function loadActivity() {
+  const list       = document.getElementById('activityList');
+  const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+  if (!activities.length) {
+    list.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="emoji">📝</div><h3>No activity yet</h3>
+      <p>Issue a book from the <a href="index.html" class="empty-link" style="display:inline-block;padding:4px 12px;font-size:0.85rem">home page</a> to get started</p>
+    </div>`;
+    return;
+  }
+  list.innerHTML = activities.map(a => `
+    <div class="activity-item">
+      <div class="activity-icon">${activityIcon(a.type)}</div>
+      <div>
+        <div class="activity-text">${a.message}</div>
+        <div class="activity-time">${getTimeAgo(new Date(a.timestamp))}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── RENDER DASHBOARD GRID ─────────────────────────────────
+function renderDashGrid(containerId, books, context, showProgress = false) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  container.className = 'book-grid';
+
+  if (!books.length) {
+    const msgs = {
+      issued:    { icon:'📚', title:'No books issued',      sub:'Browse the library and issue a book', link:true },
+      reading:   { icon:'📖', title:'Not reading anything', sub:'Issue a book and start reading', link:true },
+      completed: { icon:'✅', title:'No completed books',   sub:'Finish a book to see it here', link:false },
+      favorites: { icon:'❤️', title:'No favorites yet',     sub:'Tap 🤍 on any book to add it', link:true },
+    };
+    const m = msgs[context] || { icon:'📭', title:'Nothing here', sub:'', link:false };
+    container.innerHTML = `<div class="empty-state">
+      <div class="emoji">${m.icon}</div><h3>${m.title}</h3><p>${m.sub}</p>
+      ${m.link ? '<a href="index.html" class="empty-link">Browse Books</a>' : ''}
+    </div>`;
+    return;
+  }
+
+  books.forEach(book => {
+    const prog     = (JSON.parse(localStorage.getItem('progress') || '{}'))[book.id] || 0;
+    const completed = getCompleted();
+    const isDone   = completed.includes(book.id);
+    const card     = document.createElement('div');
+    card.className = 'book-card';
+    card.tabIndex  = 0;
+
+    let footer = '';
+    if (context === 'reading') {
+      footer = `<button class="btn-done" onclick="markDone(${book.id},event)">✅ Mark Done</button>
+                <button class="btn-return" onclick="returnBook(${book.id},event)">Return</button>`;
+    } else if (context === 'issued') {
+      const isReading = getReading().includes(book.id);
+      if (!isDone) {
+        footer += isReading
+          ? `<button class="btn-done"    onclick="markDone(${book.id},event)">Mark Done</button>`
+          : `<button class="btn-reading" onclick="startReading(${book.id},event)">Start Reading</button>`;
+      }
+      footer += `<button class="btn-return" onclick="returnBook(${book.id},event)">Return</button>`;
+    } else if (context === 'favorites') {
+      const isIssued2 = getIssued().includes(book.id);
+      footer = isIssued2
+        ? `<button class="btn-return" onclick="returnBook(${book.id},event)">Return</button>`
+        : `<button class="btn-issue"  onclick="issueBook(${book.id},event)">Issue Book</button>`;
+      footer += `<button class="btn-done" onclick="toggleFav(${book.id},event)">💔 Remove</button>`;
+    } else {
+      footer = `<button class="btn-return" onclick="returnBook(${book.id},event)">Return</button>`;
+    }
+
+    const isReadingNow = getReading().includes(book.id);
+    let badge = '';
+    if (isDone)           badge = '<span class="status-badge badge-done">✅ Done</span>';
+    else if (isReadingNow) badge = '<span class="status-badge badge-reading">📖 Reading</span>';
+
+    card.innerHTML = `
+      <div class="book-cover-wrap">
+        ${badge}
+        <span>${book.cover}</span>
+      </div>
+      <div class="book-body">
+        <div class="book-cat">${book.category}</div>
+        <div class="book-title">${book.title}</div>
+        <div class="book-author">${book.author}</div>
+      </div>
+      ${showProgress || isReadingNow ? `
+      <div class="card-progress">
+        <div class="card-progress-bar">
+          <div class="card-progress-fill" style="width:${prog}%"></div>
+        </div>
+        <div class="card-progress-text">${prog}% complete</div>
+      </div>` : ''}
+      <div class="book-footer">${footer}</div>`;
+
+    card.addEventListener('click',   e => { if (!e.target.matches('button')) openModal(book.id); });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter') openModal(book.id); });
+    container.appendChild(card);
+  });
+}
+
+// ── FILTER & SORT ─────────────────────────────────────────
+function filterSection(section, query) {
+  const q     = query.toLowerCase();
+  const cards = document.querySelectorAll(`#container-${section} .book-card`);
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+function sortSection(section, by) {
+  const container = document.getElementById(`container-${section}`);
+  const cards     = Array.from(container.querySelectorAll('.book-card'));
+  cards.sort((a, b) => {
+    const aT = a.querySelector('.book-title')?.textContent  || '';
+    const bT = b.querySelector('.book-title')?.textContent  || '';
+    const aA = a.querySelector('.book-author')?.textContent || '';
+    const bA = b.querySelector('.book-author')?.textContent || '';
+    const aC = a.querySelector('.book-cat')?.textContent    || '';
+    const bC = b.querySelector('.book-cat')?.textContent    || '';
+    if (by === 'author')   return aA.localeCompare(bA);
+    if (by === 'category') return aC.localeCompare(bC);
+    return aT.localeCompare(bT);
+  });
+  cards.forEach(c => container.appendChild(c));
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('sc-all-num').textContent       = getIssued().length;
+  document.getElementById('sc-reading-num').textContent   = getReading().length;
+  document.getElementById('sc-completed-num').textContent = getCompleted().length;
+  document.getElementById('sc-favorites-num').textContent = getFavorites().length;
+}
+
+// ── READING GOAL ──────────────────────────────────────────
+function updateGoal() {
+  const goal    = parseInt(localStorage.getItem('readingGoal') || '12');
+  const done    = getCompleted().length;
+  const pct     = Math.min((done / goal) * 100, 100);
+  document.getElementById('goalFill').style.width    = pct + '%';
+  document.getElementById('currentRead').textContent = done;
+  document.getElementById('goalTarget').textContent  = goal;
+  document.getElementById('goalInput').value         = goal;
+  // streak — simple: count completed books total as proxy
+  document.getElementById('streakNum').textContent   = done;
+}
+
+function openGoalModal() {
+  document.getElementById('goalModal').classList.add('open');
+}
+function closeGoalModal() {
+  document.getElementById('goalModal').classList.remove('open');
+}
+function saveGoal() {
+  const val = parseInt(document.getElementById('goalInput').value);
+  if (!val || val < 1) { toast('Enter a valid number', 'warning'); return; }
+  localStorage.setItem('readingGoal', val);
+  updateGoal();
+  closeGoalModal();
+  toast(`Reading goal set to ${val} books!`, 'success');
+}
+
+// close goal modal on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+  const gm = document.getElementById('goalModal');
+  if (gm) gm.addEventListener('click', e => { if (e.target === gm) closeGoalModal(); });
+});
+
+// ── INIT ──────────────────────────────────────────────────
+updateStats();
+updateGoal();
+loadSection('all');
+</script>
+</body>
+</html>

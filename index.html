@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📚 Digital Library</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="logo">📚 <span>Library</span></div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search books, authors, genres…"
+           autocomplete="off" oninput="handleSearch(this.value)">
+  </div>
+
+  <div class="header-actions">
+    <button class="icon-btn" onclick="toggleSidebar()" title="Filters">☰</button>
+    <a href="dashboard.html" class="hbtn hbtn-ghost">📊 Dashboard</a>
+    <button class="hbtn hbtn-ghost" onclick="showWishlistView()">
+      ⭐ Wishlist (<span id="wishCount">0</span>)
+    </button>
+    <button class="icon-btn" id="darkBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+  </div>
+</header>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Categories</div>
+      <button class="cat-btn active" onclick="setCategory('all',this)">
+        <span class="cat-dot" style="background:var(--amber)"></span>All Books<span class="cat-count">12</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('Self-Help',this)">
+        <span class="cat-dot" style="background:#e8943a"></span>Self-Help<span class="cat-count">3</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('Finance',this)">
+        <span class="cat-dot" style="background:#2d6a4f"></span>Finance<span class="cat-count">2</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('Fiction',this)">
+        <span class="cat-dot" style="background:#9b2335"></span>Fiction<span class="cat-count">2</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('History',this)">
+        <span class="cat-dot" style="background:#6b4226"></span>History<span class="cat-count">1</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('Sci-Fi',this)">
+        <span class="cat-dot" style="background:#3d5a80"></span>Sci-Fi<span class="cat-count">1</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('Technology',this)">
+        <span class="cat-dot" style="background:#5a3d80"></span>Technology<span class="cat-count">2</span>
+      </button>
+      <button class="cat-btn" onclick="setCategory('Biography',this)">
+        <span class="cat-dot" style="background:#7a6d2e"></span>Biography<span class="cat-count">1</span>
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Sort By</div>
+      <select class="filter-select" id="sortSelect" onchange="renderBooks()">
+        <option value="title">Title (A–Z)</option>
+        <option value="author">Author (A–Z)</option>
+        <option value="category">Category</option>
+      </select>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Availability</div>
+      <select class="filter-select" id="availSelect" onchange="renderBooks()">
+        <option value="all">All Books</option>
+        <option value="available">Available Only</option>
+        <option value="issued">Issued to Me</option>
+      </select>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Quick Links</div>
+      <button class="cat-btn" onclick="showWishlistView()"><span>⭐</span>My Wishlist</button>
+      <a href="dashboard.html" class="cat-btn" style="display:flex;gap:8px"><span>📊</span>My Dashboard</a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero" id="heroStrip">
+      <div class="hero-text">
+        <h2>Your Digital Library</h2>
+        <p>Discover, issue and track your reading journey</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num">12</span>
+          <div class="hero-stat-label">Available</div>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="h-issued">0</span>
+          <div class="hero-stat-label">Issued</div>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="h-completed">0</span>
+          <div class="hero-stat-label">Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist panel (hidden) -->
+    <div id="wishlistView" style="display:none">
+      <div class="section-header">
+        <button class="back-btn" onclick="showAllView()">← Back</button>
+        <h2>⭐ Your Wishlist</h2>
+      </div>
+      <div class="book-grid" id="wishlistGrid"></div>
+    </div>
+
+    <!-- Books panel -->
+    <div id="booksView">
+      <div class="discovery-bar">
+        <button class="disco-btn active" onclick="setDiscovery('all',this)">All Books</button>
+        <button class="disco-btn"        onclick="setDiscovery('reading',this)">📖 Reading</button>
+        <button class="disco-btn"        onclick="setDiscovery('completed',this)">✅ Completed</button>
+        <button class="disco-btn"        onclick="showWishlistView()">⭐ Wishlist</button>
+        <div class="view-toggle">
+          <button class="vtbtn active" id="gridViewBtn" onclick="setView('grid')" title="Grid">⊞</button>
+          <button class="vtbtn"        id="listViewBtn" onclick="setView('list')" title="List">☰</button>
+        </div>
+      </div>
+      <div class="results-meta" id="resultsMeta">Showing all 12 books</div>
+      <div class="book-grid" id="bookGrid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Book modal -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitleBar">Book Details</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="library.js"></script>
+<script>
+// ── HOME PAGE STATE ───────────────────────────────────────
+let currentCategory  = 'all';
+let currentDiscovery = 'all';
+let currentView      = 'grid';
+let searchQuery      = '';
+
+// Called by library.js after any book action
+function afterAction() {
+  renderBooks();
+  updateHeroStats();
+  updateWishCount();
+  if (document.getElementById('wishlistView').style.display !== 'none') renderWishlist();
+}
+
+// ── BUILD CARD ─────────────────────────────────────────────
+function buildCard(book) {
+  const issued = getIssued(), favs = getFavorites(),
+        reading = getReading(), completed = getCompleted();
+  const isIssued  = issued.includes(book.id);
+  const isFav     = favs.includes(book.id);
+  const isReading = reading.includes(book.id);
+  const isDone    = completed.includes(book.id);
+
+  let badge = '';
+  if (isDone)         badge = '<span class="status-badge badge-done">✅ Done</span>';
+  else if (isReading) badge = '<span class="status-badge badge-reading">📖 Reading</span>';
+  else if (isIssued)  badge = '<span class="status-badge badge-issued">📋 Issued</span>';
+
+  let footer = '';
+  if (isIssued) {
+    footer += `<button class="btn-return" onclick="returnBook(${book.id},event)">Return</button>`;
+    if (!isDone) {
+      footer += isReading
+        ? `<button class="btn-done"    onclick="markDone(${book.id},event)">Mark Done</button>`
+        : `<button class="btn-reading" onclick="startReading(${book.id},event)">Start Reading</button>`;
+    }
+  } else {
+    footer += `<button class="btn-issue" onclick="issueBook(${book.id},event)">Issue Book</button>`;
+  }
+
+  const div = document.createElement('div');
+  div.className = 'book-card';
+  div.tabIndex  = 0;
+  div.innerHTML = `
+    <div class="book-cover-wrap">
+      ${badge}
+      <button class="fav-btn ${isFav ? 'active' : ''}"
+              onclick="toggleFav(${book.id},event)"
+              title="${isFav ? 'Remove from wishlist' : 'Add to wishlist'}">${isFav ? '❤️' : '🤍'}</button>
+      <span>${book.cover}</span>
+    </div>
+    <div class="book-body">
+      <div class="book-cat">${book.category}</div>
+      <div class="book-title">${book.title}</div>
+      <div class="book-author">${book.author}</div>
+      <div class="book-desc">${book.description}</div>
+    </div>
+    <div class="book-footer">${footer}</div>`;
+
+  div.addEventListener('click',   e => { if (!e.target.matches('button')) openModal(book.id); });
+  div.addEventListener('keydown', e => { if (e.key === 'Enter') openModal(book.id); });
+  return div;
+}
+
+// ── RENDER ─────────────────────────────────────────────────
+function renderBooks() {
+  const sort  = document.getElementById('sortSelect').value;
+  const avail = document.getElementById('availSelect').value;
+  const issued = getIssued(), reading = getReading(), completed = getCompleted();
+
+  let list = [...BOOKS];
+  if (currentCategory  !== 'all')       list = list.filter(b => b.category === currentCategory);
+  if (currentDiscovery === 'reading')   list = list.filter(b => reading.includes(b.id));
+  if (currentDiscovery === 'completed') list = list.filter(b => completed.includes(b.id));
+  if (avail === 'available') list = list.filter(b => !issued.includes(b.id));
+  if (avail === 'issued')    list = list.filter(b =>  issued.includes(b.id));
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    list = list.filter(b =>
+      b.title.toLowerCase().includes(q)  ||
+      b.author.toLowerCase().includes(q) ||
+      b.category.toLowerCase().includes(q));
+  }
+
+  if (sort === 'author')   list.sort((a,b) => a.author.localeCompare(b.author));
+  else if (sort === 'category') list.sort((a,b) => a.category.localeCompare(b.category));
+  else                     list.sort((a,b) => a.title.localeCompare(b.title));
+
+  const grid = document.getElementById('bookGrid');
+  grid.innerHTML = '';
+  grid.className = 'book-grid' + (currentView === 'list' ? ' list-view' : '');
+  document.getElementById('resultsMeta').textContent =
+    `Showing ${list.length} book${list.length !== 1 ? 's' : ''}` +
+    (searchQuery ? ` for "${searchQuery}"` : '');
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="emoji">📭</div>
+      <h3>No books found</h3><p>Try adjusting your filters or search</p></div>`;
+    return;
+  }
+  list.forEach(b => grid.appendChild(buildCard(b)));
+}
+
+// ── WISHLIST ───────────────────────────────────────────────
+function showWishlistView() {
+  document.getElementById('booksView').style.display    = 'none';
+  document.getElementById('heroStrip').style.display    = 'none';
+  document.getElementById('wishlistView').style.display = 'block';
+  renderWishlist();
+}
+function renderWishlist() {
+  const grid  = document.getElementById('wishlistGrid');
+  const items = BOOKS.filter(b => getFavorites().includes(b.id));
+  grid.innerHTML = '';
+  grid.className = 'book-grid';
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="emoji">⭐</div>
+      <h3>Wishlist is empty</h3><p>Tap 🤍 on any book to add it here</p></div>`;
+  } else { items.forEach(b => grid.appendChild(buildCard(b))); }
+}
+function showAllView() {
+  document.getElementById('wishlistView').style.display = 'none';
+  document.getElementById('booksView').style.display    = 'block';
+  document.getElementById('heroStrip').style.display    = 'flex';
+  renderBooks();
+}
+
+// ── CONTROLS ──────────────────────────────────────────────
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBooks();
+  if (window.innerWidth < 768) toggleSidebar();
+}
+function setDiscovery(mode, btn) {
+  currentDiscovery = mode;
+  document.querySelectorAll('.disco-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBooks();
+}
+function setView(v) {
+  currentView = v;
+  document.getElementById('gridViewBtn').classList.toggle('active', v === 'grid');
+  document.getElementById('listViewBtn').classList.toggle('active', v === 'list');
+  renderBooks();
+}
+function handleSearch(val) { searchQuery = val.trim(); renderBooks(); }
+
+// ── STATS ──────────────────────────────────────────────────
+function updateHeroStats() {
+  document.getElementById('h-issued').textContent    = getIssued().length;
+  document.getElementById('h-completed').textContent = getCompleted().length;
+}
+function updateWishCount() {
+  document.getElementById('wishCount').textContent = getFavorites().length;
+}
+
+// ── INIT ───────────────────────────────────────────────────
+renderBooks();
+updateHeroStats();
+updateWishCount();
+</script>
+</body>
+</html>
